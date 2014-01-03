@@ -114,9 +114,7 @@ App.CalendarCellView = Backbone.View.extend({
 
   render: function() {
     var html = _.template(this.template, { date: this.date });
-    this.$el
-      .attr('data-date', moment(this.date).format('YYYY-MM-DD'))
-      .html(html);
+    this.$el.html(html);
 
     var schedules = this.collection.findByDate(this.date);
 
@@ -131,9 +129,7 @@ App.CalendarCellView = Backbone.View.extend({
   },
 
   onClick: function() {
-    var date = this.$el.attr('data-date');
-    
-    App.mediator.trigger('dialog:setDate', date);
+    App.mediator.trigger('dialog:setDate', this.date);
     App.mediator.trigger('dialog:open');
   }
 });
@@ -221,8 +217,8 @@ App.FormDialogView = Backbone.View.extend({
   },
 
   clearAll: function() {
-    this.model = undefined;
-    this.date = undefined;
+    this.model = null;
+    this.date = null;
   },
 
   onSubmit: function(e) {
