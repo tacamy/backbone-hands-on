@@ -213,7 +213,6 @@ App.FormDialogView = Backbone.View.extend({
 
   clearAll: function() {
     this.model = null;
-    this.date = null;
   },
 
   onSubmit: function(e) {
