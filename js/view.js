@@ -114,7 +114,9 @@ App.CalendarCellView = Backbone.View.extend({
 
   render: function() {
     var html = _.template(this.template, { date: this.date });
-    this.$el.html(html);
+    this.$el
+      .attr('data-date', moment(this.date).format('YYYY-MM-DD'))
+      .html(html);
 
     var schedules = this.collection.findByDate(this.date);
 
@@ -126,6 +128,13 @@ App.CalendarCellView = Backbone.View.extend({
       var item = new App.CalendarItemView({ model: model });
       $list.append(item.el);
     });
+  },
+
+  onClick: function() {
+    var date = this.$el.attr('data-date');
+    
+    App.mediator.trigger('dialog:setDate', date);
+    App.mediator.trigger('dialog:open');
   }
 });
 
@@ -155,6 +164,7 @@ App.CalendarItemView = Backbone.View.extend({
 
   onClick: function(e) {
     // App.formDialogView.open(this.model);
+    e.stopPropagation();
     App.mediator.trigger('dialog:open', this.model);
   }
 });
@@ -170,6 +180,7 @@ App.FormDialogView = Backbone.View.extend({
     this.listenTo(this.collection, 'add change remove', this.close);
     this.listenTo(this.collection, 'invalid', this.onError);
     this.listenTo(App.mediator, 'dialog:open', this.open);
+    this.listenTo(App.mediator, 'dialog:setDate', this.setDate);
   },
 
   render: function() {
@@ -180,6 +191,11 @@ App.FormDialogView = Backbone.View.extend({
       this.$('input[name="title"]').val(this.model.get('title'));
       this.$('input[name="datetime"]').val(this.model.dateFormat('YYYY-MM-DDTHH:mm'));
       this.$('.dialog-removeBtn').show();
+    }
+    else if (this.date) {
+      this.$('input[name="title"]').val('');
+      this.$('input[name="datetime"]').val(moment(this.date).format('YYYY-MM-DDTHH:mm'));
+      this.$('.dialog-removeBtn').hide();
     }
     else {
       this.$('input[name="title"]').val('');
@@ -198,6 +214,15 @@ App.FormDialogView = Backbone.View.extend({
   close: function() {
     this.$el.hide();
     this.clearAll();
+  },
+
+  setDate: function(date) {
+    this.date = date;
+  },
+
+  clearAll: function() {
+    this.model = undefined;
+    this.date = undefined;
   },
 
   onSubmit: function(e) {
