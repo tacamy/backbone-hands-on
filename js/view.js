@@ -129,8 +129,8 @@ App.CalendarCellView = Backbone.View.extend({
   },
 
   onClick: function() {
-    App.mediator.trigger('dialog:setDate', this.date);
-    App.mediator.trigger('dialog:open');
+    var model = new App.Schedule({ datetime: moment(this.date) });
+    App.mediator.trigger('dialog:open', model);
   }
 });
 
@@ -176,22 +176,21 @@ App.FormDialogView = Backbone.View.extend({
     this.listenTo(this.collection, 'add change remove', this.close);
     this.listenTo(this.collection, 'invalid', this.onError);
     this.listenTo(App.mediator, 'dialog:open', this.open);
-    this.listenTo(App.mediator, 'dialog:setDate', this.setDate);
   },
 
   render: function() {
     // this.$('input[name="title"]').val(this.model.get('title'));
     // this.$('input[name="datetime"]').val(this.model.dateFormat('YYYY-MM-DDTHH:mm'));
 
-    if (this.model) {
+    if (this.model && this.model.isNew()) {
+      this.$('input[name="title"]').val('');
+      this.$('input[name="datetime"]').val(this.model.dateFormat('YYYY-MM-DDTHH:mm'));
+      this.$('.dialog-removeBtn').hide();
+    }
+    else if (this.model) {
       this.$('input[name="title"]').val(this.model.get('title'));
       this.$('input[name="datetime"]').val(this.model.dateFormat('YYYY-MM-DDTHH:mm'));
       this.$('.dialog-removeBtn').show();
-    }
-    else if (this.date) {
-      this.$('input[name="title"]').val('');
-      this.$('input[name="datetime"]').val(moment(this.date).format('YYYY-MM-DDTHH:mm'));
-      this.$('.dialog-removeBtn').hide();
     }
     else {
       this.$('input[name="title"]').val('');
@@ -210,10 +209,6 @@ App.FormDialogView = Backbone.View.extend({
   close: function() {
     this.$el.hide();
     this.clearAll();
-  },
-
-  setDate: function(date) {
-    this.date = date;
   },
 
   clearAll: function() {
@@ -237,7 +232,7 @@ App.FormDialogView = Backbone.View.extend({
       datetime: moment(datetime)
     };
 
-    if (this.model) {
+    if (this.model && !this.model.isNew()) {
       this.model.save(params, { validate: true });
     }
     else {
